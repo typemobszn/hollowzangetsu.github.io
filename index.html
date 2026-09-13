@@ -302,6 +302,17 @@
          }
       }
 
+      /* The vignette's ellipse is sized in percentages of the viewport, so on tall
+         phone screens it collapses and blacks out the top and bottom of the video.
+         Tall aspect ratios get a wider, softer falloff. */
+      @media (max-aspect-ratio: 3/4) {
+         .bg-scrim {
+            background:
+               radial-gradient(170% 110% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.75) 100%),
+               linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.15) 45%, rgba(0, 0, 0, 0.45) 100%);
+         }
+      }
+
       @media (max-width: 48rem) {
 
          /* A fixed footer jumps as mobile browser chrome shows/hides and can
