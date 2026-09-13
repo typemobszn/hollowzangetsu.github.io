@@ -71,18 +71,20 @@
          margin: 0;
          padding: 0;
          min-height: 100%;
-         /* Safari paints the status-bar / toolbar safe areas with the page background
-            and never with a position:fixed layer, so this gradient is matched to the
-            video's own top and bottom edge tones to blend into it. */
+      }
+
+      /* This lives on html, not body: the background layers below use a negative
+         z-index, and a background on body would paint on top of them. Safari fills
+         the status-bar / toolbar safe areas from this, matched to the video's edges. */
+      html {
          background-color: #3a3d4a;
          background-image: linear-gradient(180deg, #404354 0%, #3a3d4a 50%, #333543 100%);
-         background-attachment: fixed;
       }
 
       body {
          font: 100%/1.5 var(--font-sf-pro);
          color: var(--ink);
-         background-color: #3a3d4a;
+         background: transparent;
          min-height: 100vh;
          min-height: 100svh;
          display: flex;
