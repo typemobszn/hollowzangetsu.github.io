@@ -34,6 +34,7 @@
          inset: 0;
          width: 100%;
          height: 100%;
+         height: 100svh;
          object-fit: cover;
          filter: blur(30px);
          transform: scale(1.2);
@@ -72,11 +73,13 @@
          color: var(--ink);
          background-color: #000000;
          min-height: 100vh;
+         min-height: 100svh;
          display: flex;
          align-items: center;
          justify-content: center;
          padding: 3rem 1.5rem;
          overflow-x: hidden;
+         overscroll-behavior-y: none;
          position: relative;
       }
 
@@ -292,6 +295,44 @@
          .glass-btn__tint {
             background: #111111;
             border: 1px solid rgba(255, 255, 255, 0.6);
+         }
+      }
+
+      @media (max-width: 48rem) {
+
+         /* A fixed footer jumps as mobile browser chrome shows/hides and can
+            overlap content on short screens — keep it in normal flow instead. */
+         .site-footer-mark {
+            position: static;
+            transform: none;
+            height: 2.75rem;
+            margin-top: 0.25rem;
+         }
+
+         body {
+            padding: 2rem 1rem;
+         }
+      }
+
+      /* Short viewports (phone landscape) need the same treatment as narrow ones. */
+      @media (max-height: 32rem) {
+         .site-footer-mark {
+            position: static;
+            transform: none;
+            height: 2.25rem;
+            margin-top: 0.25rem;
+         }
+
+         body {
+            padding: 1.25rem 1rem;
+         }
+
+         .page {
+            gap: 0.625rem;
+         }
+
+         .title-logo-wrap {
+            max-width: 34rem;
          }
       }
 
