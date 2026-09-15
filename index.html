@@ -286,6 +286,639 @@
       }
 
       .is-ready .bg-video,
+      .is-ready .bg-scrim {
+         opacity: 1;
+         transition: opacity 3s ease;
+      }
+
+      /* Fades to its own subtle grain level, NOT to 1. */
+      .is-ready .bg-noise {
+         opacity: 0.07;
+         transition: opacity 3s ease;
+      }
+
+      .is-ready .page {
+         opacity: 1;
+         transition: opacity 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.4s,
+            transform 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
+      }
+
+      .page {
+         transform: translateY(0.75rem);
+      }
+
+      .is-ready .page {
+         transform: translateY(0);
+      }
+
+      /* If JS never runs, show everything rather than leaving a blank page. */
+      .no-js .page,
+      .no-js .bg-video,
+      .no-js .bg-scrim {
+         opacity: 1;
+         transform: none;
+      }
+
+      .no-js .bg-noise {
+         opacity: 0.07;
+      }
+
+      /* ---- Accessibility & graceful degradation ---- */
+
+      @media (prefers-reduced-motion: reduce) {
+
+         *,
+         *::before,
+         *::after {
+            transition-duration: 0.01ms !important;
+         }
+
+         .page,
+         .is-ready .page {
+            transform: none !important;
+         }
+
+         .glass-btn:hover,
+         .glass-btn:active {
+            transform: none !important;
+         }
+
+         .title-logo-wrap:hover .title-logo-aberration {
+            opacity: 0 !important;
+         }
+      }
+
+      @media (prefers-reduced-transparency: reduce) {
+         .glass-btn__refract {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+         }
+
+         .glass-btn__tint {
+            background: #1a1a1a;
+         }
+      }
+
+      @media (prefers-contrast: more) {
+         .glass-btn__tint {
+            background: #111111;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+         }
+      }
+
+      /* The vignette's ellipse is sized in percentages of the viewport, so on tall
+         phone screens it collapses and blacks out the top and bottom of the video.
+         Tall aspect ratios get a wider, softer falloff. */
+      /* The source video is 16:9. On a tall phone, filling the screen would crop away
+         most of the frame, so rotate it 90deg — its long edge then runs vertically and
+         the aspect ratio nearly matches the screen. */
+      @media (max-aspect-ratio: 3/4) {
+         .bg-video {
+            inset: auto;
+            top: 50%;
+            left: 50%;
+            width: calc(100lvh + 4rem);
+            height: calc(100vw + 4rem);
+            transform: translate(-50%, -50%) rotate(90deg) scale(1.2);
+            transform-origin: center center;
+         }
+      }
+
+      @media (max-aspect-ratio: 3/4) {
+         .bg-scrim {
+            background:
+               radial-gradient(170% 110% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.75) 100%),
+               linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.15) 45%, rgba(0, 0, 0, 0.45) 100%);
+         }
+      }
+
+      @media (max-width: 48rem) {
+
+         /* A fixed footer jumps as mobile browser chrome shows/hides and can
+            overlap content on short screens — keep it in normal flow instead. */
+         .site-footer-mark {
+            position: static;
+            transform: none;
+            height: 2.75rem;
+            margin-top: 0.25rem;
+         }
+
+         body {
+            padding: calc(2rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left));
+         }
+      }
+
+      /* Short viewports (phone landscape) need the same treatment as narrow ones. */
+      @media (max-height: 32rem) {
+         .site-footer-mark {
+            position: static;
+            transform: none;
+            height: 2.25rem;
+            margin-top: 0.25rem;
+         }
+
+         body {
+            padding: calc(1.25rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right)) calc(1.25rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left));
+         }
+
+         .page {
+            gap: 0.625rem;
+         }
+
+         .title-logo-wrap {
+            max-width: 34rem;
+         }
+      }
+
+      @media (max-width: 30rem) {
+         .links {
+            gap: 0.5rem;
+            justify-content: flex-start;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            mask-image: linear-gradient(90deg, transparent 0, black 1.25rem, black calc(100% - 1.25rem), transparent 100%);
+         }
+
+         .glass-btn {
+            min-width: auto;
+            padding: 0.6rem 0.85rem;
+            font-size: 0.8125rem;
+         }
+      }
+   </style>
+</head>
+
+<body>
+
+   <video class="bg-video" autoplay loop muted playsinline preload="auto" poster="poster.jpg">
+      <source src="Silver-opt.webm" type="video/webm">
+      <source src="Silver-opt.mp4" type="video/mp4">
+   </video>
+   <div class="bg-scrim"></div>
+   <div class="bg-noise"></div>
+
+   <!-- Hidden SVG filter: gentle refraction for the glass buttons (Chromium only, ignored elsewhere) -->
+   <svg width="0" height="0" style="position:absolute; overflow:hidden;">
+      <filter id="liquid-glass" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+         <feTurbulence type="fractalNoise" baseFrequency="0.009 0.014" numOctaves="2" seed="7" result="noise" />
+         <feGaussianBlur in="noise" stdDeviation="2.5" result="softNoise" />
+
+         <!-- Red channel: most displaced -->
+         <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="26" xChannelSelector="R" yChannelSelector="G"
+            result="dispR" />
+         <feColorMatrix in="dispR" type="matrix"
+            values="1 0 0 0 0
+                    0 0 0 0 0
+                    0 0 0 0 0
+                    0 0 0 1 0" result="chanR" />
+
+         <!-- Green channel: baseline displacement -->
+         <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="16" xChannelSelector="R" yChannelSelector="G"
+            result="dispG" />
+         <feColorMatrix in="dispG" type="matrix"
+            values="0 0 0 0 0
+                    0 1 0 0 0
+                    0 0 0 0 0
+                    0 0 0 1 0" result="chanG" />
+
+         <!-- Blue channel: least displaced -->
+         <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="6" xChannelSelector="R" yChannelSelector="G"
+            result="dispB" />
+         <feColorMatrix in="dispB" type="matrix"
+            values="0 0 0 0 0
+                    0 0 0 0 0
+                    0 0 1 0 0
+                    0 0 0 1 0" result="chanB" />
+
+         <feBlend in="chanR" in2="chanG" mode="screen" result="rg" />
+         <feBlend in="rg" in2="chanB" mode="screen" />
+      </filter>
+   </svg>
+
+   <main class="page">
+      <h1 class="title"><span class="title-logo-wrap"><img class="title-logo" src="logo.png" alt="zangetsu" /><img
+               class="title-logo-aberration" src="logo.png" alt="" aria-hidden="true" /></span>
+      </h1>
+      <p class="subtitle">The Bird of Hermes is my name, eating my wings to make me tame.</p>
+
+      <ul class="links">
+         <li><a class="glass-btn" href="https://www.twitch.tv/zangetsu_space" target="_blank" rel="noopener noreferrer">
+               <span class="glass-btn__refract"></span>
+               <span class="glass-btn__tint"></span>
+               <span class="glass-btn__specular"></span>
+               <span class="glass-btn__glow"></span>
+               <span class="glass-btn__label">twitch</span>
+            </a></li>
+         <li><a class="glass-btn" href="https://www.youtube.com/channel/UCzwo0q14UTzzd8dvFgEDjHw" target="_blank"
+               rel="noopener noreferrer">
+               <span class="glass-btn__refract"></span>
+               <span class="glass-btn__tint"></span>
+               <span class="glass-btn__specular"></span>
+               <span class="glass-btn__glow"></span>
+               <span class="glass-btn__label">youtube</span>
+            </a></li>
+         <li><a class="glass-btn" href="https://discord.com/invite/GbG78USkcP" target="_blank" rel="noopener noreferrer">
+               <span class="glass-btn__refract"></span>
+               <span class="glass-btn__tint"></span>
+               <span class="glass-btn__specular"></span>
+               <span class="glass-btn__glow"></span>
+               <span class="glass-btn__label">discord</span>
+            </a></li>
+         <li><a class="glass-btn" href="https://www.instagram.com/zangetsu.space" target="_blank"
+               rel="noopener noreferrer">
+               <span class="glass-btn__refract"></span>
+               <span class="glass-btn__tint"></span>
+               <span class="glass-btn__specular"></span>
+               <span class="glass-btn__glow"></span>
+               <span class="glass-btn__label">instagram</span>
+            </a></li>
+         <li><a class="glass-btn" href="https://www.tiktok.com/@zangetsu.space" target="_blank"
+               rel="noopener noreferrer">
+               <span class="glass-btn__refract"></span>
+               <span class="glass-btn__tint"></span>
+               <span class="glass-btn__specular"></span>
+               <span class="glass-btn__glow"></span>
+               <span class="glass-btn__label">tiktok</span>
+            </a></li>
+         <li><a class="glass-btn" href="https://twitter.com/zangetsu_space" target="_blank" rel="noopener noreferrer">
+               <span class="glass-btn__refract"></span>
+               <span class="glass-btn__tint"></span>
+               <span class="glass-btn__specular"></span>
+               <span class="glass-btn__glow"></span>
+               <span class="glass-btn__label">twitter</span>
+            </a></li>
+         <li><a class="glass-btn" href="mailto:typezangetsu@gmail.com">
+               <span class="glass-btn__refract"></span>
+               <span class="glass-btn__tint"></span>
+               <span class="glass-btn__specular"></span>
+               <span class="glass-btn__glow"></span>
+               <span class="glass-btn__label">email</span>
+            </a></li>
+      </ul>
+
+      <img class="site-footer-mark" src="eye.png" alt="zangetsu.space" />
+   </main>
+
+   <script>
+      (function () {
+         var root = document.documentElement;
+
+         function reveal() {
+            if (root.classList.contains('is-ready')) return;
+            requestAnimationFrame(function () {
+               root.classList.add('is-ready');
+            });
+         }
+
+         // Wait for the pieces that would otherwise pop in mid-fade: the webfonts
+         // and the logo image. The video is deliberately NOT waited on — it's the
+         // heaviest asset and would hold the page blank on a slow connection.
+         var waits = [];
+
+         if (document.fonts && document.fonts.ready) {
+            waits.push(document.fonts.ready);
+         }
+
+         var logo = document.querySelector('.title-logo');
+         if (logo && !logo.complete) {
+            waits.push(new Promise(function (res) {
+               logo.addEventListener('load', res, { once: true });
+               logo.addEventListener('error', res, { once: true });
+            }));
+         }
+
+         if (window.Promise && waits.length) {
+            Promise.all(waits).then(reveal);
+         } else {
+            reveal();
+         }
+
+         // Safety net: never leave the page hidden, whatever stalls.
+         setTimeout(reveal, 1500);
+         window.addEventListener('load', reveal);
+      })();
+
+      (function () {
+         var bgVideo = document.querySelector('.bg-video');
+         if (!bgVideo) return;
+
+         if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            bgVideo.pause();
+         }
+      })();
+
+      (function () {
+         var wrap = document.querySelector('.title-logo-wrap');
+         if (!wrap) return;
+         var ticking = false, lastX = 0, lastY = 0;
+
+         wrap.addEventListener('pointermove', function (e) {
+            var r = wrap.getBoundingClientRect();
+            lastX = e.clientX - r.left;
+            lastY = e.clientY - r.top;
+            if (!ticking) {
+               ticking = true;
+               requestAnimationFrame(function () {
+                  wrap.style.setProperty('--mx', lastX + 'px');
+                  wrap.style.setProperty('--my', lastY + 'px');
+                  ticking = false;
+               });
+            }
+         });
+      })();
+   </script>
+
+</body>
+
+</html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+   <title>zangetsu.space</title>
+   <meta name="description" content="zangetsu.space — social links">
+   <meta name="color-scheme" content="dark">
+   <meta name="theme-color" content="#3a3d4a">
+   <script>
+      document.documentElement.classList.add('no-js');
+      document.documentElement.classList.remove('no-js');
+   </script>
+
+   <link rel="icon" href="favicon.ico" sizes="any">
+   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+   <style>
+      :root {
+         --ink: #ffffff;
+         --gold: #ffffff;
+         --gold-soft: rgba(255, 255, 255, 0.4);
+         --glass-tint: rgba(255, 255, 255, 0.08);
+         --glass-tint-strong: rgba(255, 255, 255, 0.14);
+         --glass-border: rgba(255, 255, 255, 0.14);
+         --font-sf-pro: -apple-system, "SF Pro Display", "SF Pro Text", BlinkMacSystemFont, system-ui, sans-serif;
+         --font-sf-compact: -apple-system, "SF Compact Text", "SF Compact Display", BlinkMacSystemFont, system-ui, sans-serif;
+         --font-sf-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, monospace;
+      }
+
+      * {
+         box-sizing: border-box;
+      }
+
+      .bg-video {
+         position: fixed;
+         inset: -2rem;
+         width: calc(100% + 4rem);
+         height: calc(100% + 4rem);
+         height: calc(100lvh + 4rem);
+         object-fit: cover;
+         filter: blur(30px);
+         transform: scale(1.2);
+         z-index: -2;
+      }
+
+      .bg-scrim {
+         position: fixed;
+         inset: -2rem;
+         height: calc(100% + 4rem);
+         height: calc(100lvh + 4rem);
+         z-index: -1;
+         background:
+            radial-gradient(110% 75% at 50% 50%, transparent 25%, rgba(0, 0, 0, 0.92) 100%),
+            linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0.7) 100%);
+      }
+
+      .bg-noise {
+         position: fixed;
+         inset: -2rem;
+         height: calc(100% + 4rem);
+         height: calc(100lvh + 4rem);
+         z-index: -1;
+         pointer-events: none;
+         opacity: 0.07;
+         mix-blend-mode: screen;
+         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+         background-size: 200px 200px;
+      }
+
+      html,
+      body {
+         margin: 0;
+         padding: 0;
+         min-height: 100%;
+      }
+
+      /* This lives on html, not body: the background layers below use a negative
+         z-index, and a background on body would paint on top of them. Safari fills
+         the status-bar / toolbar safe areas from this, matched to the video's edges. */
+      html {
+         background-color: #3a3d4a;
+         background-image: linear-gradient(180deg, #404354 0%, #3a3d4a 50%, #333543 100%);
+      }
+
+      body {
+         font: 100%/1.5 var(--font-sf-pro);
+         color: var(--ink);
+         background: transparent;
+         min-height: 100vh;
+         min-height: 100svh;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         padding: calc(3rem + env(safe-area-inset-top)) calc(1.5rem + env(safe-area-inset-right)) calc(3rem + env(safe-area-inset-bottom)) calc(1.5rem + env(safe-area-inset-left));
+         overflow-x: hidden;
+         overscroll-behavior-y: none;
+         position: relative;
+      }
+
+      .page {
+         width: 100%;
+         max-width: 68rem;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         text-align: center;
+         gap: 1rem;
+      }
+
+      .title {
+         margin: 0;
+         padding: 0;
+         width: 100%;
+         display: flex;
+         justify-content: center;
+         line-height: 0;
+      }
+
+      .title-logo-wrap {
+         position: relative;
+         display: block;
+         width: 100%;
+         max-width: 62rem;
+      }
+
+      .title-logo {
+         display: block;
+         width: 100%;
+         height: auto;
+      }
+
+      /* Chromatic aberration: a duplicate of the logo carrying a subtle RGB split,
+         revealed only inside a soft circle that follows the cursor. */
+      .title-logo-aberration {
+         position: absolute;
+         inset: 0;
+         width: 100%;
+         height: auto;
+         pointer-events: none;
+         opacity: 0;
+         transition: opacity 0.25s ease;
+         filter:
+            drop-shadow(-0.22rem -0.05rem 0 rgba(255, 40, 70, 0.85)) drop-shadow(0.22rem 0.05rem 0 rgba(40, 235, 255, 0.85));
+         -webkit-mask-image: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), #000 0, #000 40px, transparent 110px);
+         mask-image: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), #000 0, #000 40px, transparent 110px);
+      }
+
+      .title-logo-wrap:hover .title-logo-aberration {
+         opacity: 0.55;
+      }
+
+      .subtitle {
+         margin: 0;
+         max-width: 32rem;
+         font-family: var(--font-sf-pro);
+         font-style: italic;
+         font-weight: 400;
+         font-size: clamp(0.77rem, 1.68vw, 0.9625rem);
+         line-height: 1.6;
+         letter-spacing: 0.01em;
+         color: var(--ink);
+      }
+
+      .links {
+         list-style: none;
+         margin: 0;
+         padding: 0.75rem 1rem 1rem;
+         display: flex;
+         flex-wrap: nowrap;
+         align-items: center;
+         justify-content: flex-start;
+         gap: 0.625rem;
+         max-width: 100%;
+         overflow-x: auto;
+         overflow-y: hidden;
+         -webkit-overflow-scrolling: touch;
+      }
+
+      /* ---- Liquid glass buttons: refract / tint / specular / content ---- */
+
+      .glass-btn {
+         position: relative;
+         isolation: isolate;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         flex-shrink: 0;
+         min-width: 6rem;
+         padding: 0.7rem 1.1rem;
+         border-radius: 999px;
+         overflow: hidden;
+         text-decoration: none;
+         color: var(--ink);
+         font-family: var(--font-sf-compact);
+         font-size: 0.875rem;
+         font-weight: 500;
+         letter-spacing: 0.01em;
+         transform: translateZ(0);
+         transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+         will-change: transform;
+      }
+
+      .glass-btn__refract {
+         position: absolute;
+         inset: 0;
+         backdrop-filter: blur(14px) saturate(160%);
+         backdrop-filter: blur(14px) url(#liquid-glass) saturate(160%);
+         -webkit-backdrop-filter: blur(14px) saturate(160%);
+      }
+
+      .glass-btn__tint {
+         position: absolute;
+         inset: 0;
+         background: var(--glass-tint);
+         border: 1px solid var(--glass-border);
+         border-radius: inherit;
+      }
+
+      .glass-btn__specular {
+         position: absolute;
+         inset: 0;
+         border-radius: inherit;
+         box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.35),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+            0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);
+         pointer-events: none;
+      }
+
+      .glass-btn__glow {
+         position: absolute;
+         inset: 0;
+         border-radius: inherit;
+         background: radial-gradient(120% 140% at 50% 0%, rgba(255, 255, 255, 0.28), transparent 70%);
+         opacity: 0;
+         transition: opacity 0.3s ease;
+         pointer-events: none;
+      }
+
+      .glass-btn__label {
+         position: relative;
+         z-index: 1;
+      }
+
+      .glass-btn:hover {
+         transform: translateY(-0.125rem) scale(1.02);
+      }
+
+      .glass-btn:hover .glass-btn__glow {
+         opacity: 1;
+      }
+
+      .glass-btn:hover .glass-btn__tint {
+         background: var(--glass-tint-strong);
+      }
+
+      .glass-btn:active {
+         transform: translateY(0) scale(0.965);
+         transition: transform 0.15s cubic-bezier(0.32, 0.72, 0, 1);
+      }
+
+      .site-footer-mark {
+         position: fixed;
+         left: 50%;
+         bottom: calc(1.5rem + env(safe-area-inset-bottom));
+         transform: translateX(-50%);
+         width: auto;
+         height: 3.25rem;
+         opacity: 0.85;
+         transition: opacity 0.3s ease;
+      }
+
+      .site-footer-mark:hover {
+         opacity: 1;
+      }
+
+      /* ---- Load fade-in ---- */
+      .page,
+      .bg-video,
+      .bg-scrim,
+      .bg-noise {
+         opacity: 0;
+      }
+
+      .is-ready .bg-video,
       .is-ready .bg-scrim,
       .is-ready .bg-noise {
          opacity: 1;
