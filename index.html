@@ -8,6 +8,10 @@
    <meta name="description" content="zangetsu.space — social links">
    <meta name="color-scheme" content="dark">
    <meta name="theme-color" content="#3a3d4a">
+   <script>
+      document.documentElement.classList.add('no-js');
+      document.documentElement.classList.remove('no-js');
+   </script>
 
    <link rel="icon" href="favicon.ico" sizes="any">
    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -273,6 +277,44 @@
          opacity: 1;
       }
 
+      /* ---- Load fade-in ---- */
+      .page,
+      .bg-video,
+      .bg-scrim,
+      .bg-noise {
+         opacity: 0;
+      }
+
+      .is-ready .bg-video,
+      .is-ready .bg-scrim,
+      .is-ready .bg-noise {
+         opacity: 1;
+         transition: opacity 1s ease;
+      }
+
+      .is-ready .page {
+         opacity: 1;
+         transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s,
+            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+      }
+
+      .page {
+         transform: translateY(0.75rem);
+      }
+
+      .is-ready .page {
+         transform: translateY(0);
+      }
+
+      /* If JS never runs, show everything rather than leaving a blank page. */
+      .no-js .page,
+      .no-js .bg-video,
+      .no-js .bg-scrim,
+      .no-js .bg-noise {
+         opacity: 1;
+         transform: none;
+      }
+
       /* ---- Accessibility & graceful degradation ---- */
 
       @media (prefers-reduced-motion: reduce) {
@@ -281,6 +323,11 @@
          *::before,
          *::after {
             transition-duration: 0.01ms !important;
+         }
+
+         .page,
+         .is-ready .page {
+            transform: none !important;
          }
 
          .glass-btn:hover,
@@ -395,8 +442,9 @@
 
 <body>
 
-   <video class="bg-video" autoplay loop muted playsinline preload="auto">
-      <source src="Silver.mp4" type="video/mp4">
+   <video class="bg-video" autoplay loop muted playsinline preload="auto" poster="poster.jpg">
+      <source src="Silver-opt.webm" type="video/webm">
+      <source src="Silver-opt.mp4" type="video/mp4">
    </video>
    <div class="bg-scrim"></div>
    <div class="bg-noise"></div>
@@ -504,6 +552,44 @@
    </main>
 
    <script>
+      (function () {
+         var root = document.documentElement;
+
+         function reveal() {
+            if (root.classList.contains('is-ready')) return;
+            requestAnimationFrame(function () {
+               root.classList.add('is-ready');
+            });
+         }
+
+         // Wait for the pieces that would otherwise pop in mid-fade: the webfonts
+         // and the logo image. The video is deliberately NOT waited on — it's the
+         // heaviest asset and would hold the page blank on a slow connection.
+         var waits = [];
+
+         if (document.fonts && document.fonts.ready) {
+            waits.push(document.fonts.ready);
+         }
+
+         var logo = document.querySelector('.title-logo');
+         if (logo && !logo.complete) {
+            waits.push(new Promise(function (res) {
+               logo.addEventListener('load', res, { once: true });
+               logo.addEventListener('error', res, { once: true });
+            }));
+         }
+
+         if (window.Promise && waits.length) {
+            Promise.all(waits).then(reveal);
+         } else {
+            reveal();
+         }
+
+         // Safety net: never leave the page hidden, whatever stalls.
+         setTimeout(reveal, 1500);
+         window.addEventListener('load', reveal);
+      })();
+
       (function () {
          var bgVideo = document.querySelector('.bg-video');
          if (!bgVideo) return;
